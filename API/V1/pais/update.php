@@ -1,0 +1,78 @@
+<?php
+// required headers
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: POST,GET");
+header("Access-Control-Max-Age: 3600");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+include_once '../config/helper.php';
+include_once '../config/database.php';
+include_once '../objects/pais.php';
+ include_once '../token/validatetoken.php';
+// get database connection
+$database = new Database();
+$db = $database->getConnection();
+ 
+// prepare pais object
+$pais = new Pais($db);
+ 
+// get id of pais to be edited
+$data = json_decode(file_get_contents("php://input"));
+ 
+// set ID property of pais to be edited
+$pais->id_pais = $data->id_pais;
+
+if(
+!isEmpty($data->nombre)
+&&!isEmpty($data->nacionalidad)
+&&!isEmpty($data->activo)
+){
+// set pais property values
+
+if(!isEmpty($data->nombre)) { 
+$pais->nombre = $data->nombre;
+} else { 
+$pais->nombre = '';
+}
+if(!isEmpty($data->nacionalidad)) { 
+$pais->nacionalidad = $data->nacionalidad;
+} else { 
+$pais->nacionalidad = '';
+}
+if(!isEmpty($data->activo)) { 
+$pais->activo = $data->activo;
+} else { 
+$pais->activo = '1';
+}
+ 
+// update the pais
+if($pais->update()){
+ 
+    // set response code - 200 ok
+    http_response_code(200);
+ 
+    // tell the user
+	echo json_encode(array("status" => "success", "code" => 1,"message"=> "Updated Successfully","document"=> ""));
+}
+ 
+// if unable to update the pais, tell the user
+else{
+ 
+    // set response code - 503 service unavailable
+    http_response_code(503);
+ 
+    // tell the user
+	echo json_encode(array("status" => "error", "code" => 0,"message"=> "Unable to update pais","document"=> ""));
+    
+}
+}
+// tell the user data is incomplete
+else{
+ 
+    // set response code - 400 bad request
+    http_response_code(400);
+ 
+    // tell the user
+	echo json_encode(array("status" => "error", "code" => 0,"message"=> "Unable to update pais. Data is incomplete.","document"=> ""));
+}
+?>
